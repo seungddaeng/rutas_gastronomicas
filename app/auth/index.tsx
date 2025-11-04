@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { Image, View, Text, StyleSheet, TouchableOpacity, TextInput, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useThemeColors } from "../../hooks/useThemeColors";
 import { spacing, radius } from "../../theme/tokens";
@@ -52,7 +52,10 @@ export default function LoginScreen() {
         <View style={[styles.container, { backgroundColor: colors.background }]}>
           <View style={styles.logoWrap}>
             <View style={[styles.logoCard, { backgroundColor: colors.surface, shadowColor: colors.text }]}>
-              <Text style={[styles.emoji, { color: colors.primary }]}>🍽️</Text>
+              <Image
+                source={require("../../assets/splash.png")}
+                style={{ width: 60, height: 60, resizeMode: "contain" }}
+              />
             </View>
             <Text style={[styles.title, { color: colors.text }]}>Rutas Gastronómicas</Text>
             <Text style={[styles.subtitle, { color: colors.subtitle }]}>Explora platos de La Paz.</Text>

@@ -30,6 +30,9 @@ import { fetchPlatoById } from "../../../../services/platos";
 import { useIsAdmin } from "../../../../constants/roles";
 import FadeView from "../../../../components/FadeView";
 import { useFade } from "../../../../hooks/useFade";
+import * as Location from "expo-location";
+import { zonasMap } from "../../../../data/zonas";
+import { openInMaps, navigateInMaps } from "../../../../utils/nativeMaps";
 
 export default function PlatoDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -124,6 +127,24 @@ export default function PlatoDetail() {
     extrapolate: "clamp",
   });
 
+  const [origin, setOrigin] = useState<{ lat: number; lng: number } | null>(
+    null
+  );
+  useEffect(() => {
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
+        const pos = await Location.getCurrentPositionAsync({});
+        setOrigin({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      } catch {
+        // silencioso
+      }
+    })();
+  }, []);
+
+  const zona = zonasMap[plato.zona];
+
   return (
     <FadeView opacity={opacity} transform={transform} style={{ flex: 1 }}>
       <Animated.ScrollView
@@ -153,10 +174,7 @@ export default function PlatoDetail() {
             style={[
               styles.hero,
               {
-                transform: [
-                  { scale: heroScale },
-                  { translateY: heroTranslateY },
-                ],
+                transform: [{ scale: heroScale }, { translateY: heroTranslateY }],
               },
             ]}
             resizeMode="cover"
@@ -271,6 +289,74 @@ export default function PlatoDetail() {
                 </Text>
               </TouchableOpacity>
             </Link>
+          </View>
+
+          <View
+            style={{
+              marginTop: spacing.lg,
+              borderTopWidth: 1,
+              borderTopColor: colors.border,
+              paddingTop: spacing.md,
+            }}
+          >
+            <Text style={{ color: colors.text, fontSize: 16, fontWeight: "700" }}>
+              Ubicación
+            </Text>
+            <Text style={{ color: colors.muted, marginTop: 4 }}>
+              Zona: {zona.nombre} — {zona.lugarTipico}
+            </Text>
+
+            <View style={{ flexDirection: "row", marginTop: 8 }}>
+              <TouchableOpacity
+                onPress={() =>
+                  openInMaps(
+                    zona.centroid.latitude,
+                    zona.centroid.longitude,
+                    `${plato.nombre} - ${zona.nombre}`
+                  )
+                }
+                style={{
+                  paddingHorizontal: spacing.lg,
+                  paddingVertical: spacing.sm,
+                  borderRadius: 10,
+                  backgroundColor: colors.primary,
+                  marginRight: 8,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <Ionicons name="navigate-outline" size={18} color="#fff" />
+                <Text style={{ color: "#fff", fontWeight: "700" }}>
+                  Ver en mapa (nativo)
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() =>
+                  navigateInMaps(
+                    origin,
+                    zona.centroid.latitude,
+                    zona.centroid.longitude,
+                    zona.lugarTipico
+                  )
+                }
+                style={{
+                  paddingHorizontal: spacing.lg,
+                  paddingVertical: spacing.sm,
+                  borderRadius: 10,
+                  backgroundColor: colors.primary,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 8,
+                }}
+              >
+                <Ionicons name="trail-sign-outline" size={18} color={colors.text} />
+                <Text style={{ color: colors.text, fontWeight: "700" }}>
+                  Trazar ruta
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
 
           <AddReviewForm platoId={plato.id} />
