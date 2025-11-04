@@ -1,4 +1,10 @@
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../lib/firebase";
 
 export type UserDoc = {
@@ -8,31 +14,38 @@ export type UserDoc = {
   photoURL: string | null;
   role: "user" | "admin";
   createdAt: any;
+  pushToken?: string | null;
+  notificationsEnabled?: boolean;
 };
 
 const localPart = (email?: string | null) =>
   (email ? email.split("@")[0] : null) || null;
 
 export async function ensureUserDoc(u: {
-  uid: string; email: string | null; displayName: string | null; photoURL: string | null;
-}) {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}): Promise<UserDoc> {
   const ref = doc(db, "users", u.uid);
   const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, {
-      uid: u.uid,
-      email: u.email ?? null,
-      displayName: u.displayName ?? localPart(u.email),
-      photoURL: u.photoURL ?? null,
-      role: "user",
-      createdAt: serverTimestamp(),
-    } as UserDoc);
-  } else {
-    const d = snap.data() as Partial<UserDoc>;
-    if (!d.displayName) {
-      await updateDoc(ref, { displayName: localPart(u.email) });
-    }
+
+  if (snap.exists()) {
+    return snap.data() as UserDoc;
   }
+
+  const docData: UserDoc = {
+    uid: u.uid,
+    email: u.email,
+    displayName: u.displayName ?? localPart(u.email),
+    photoURL: u.photoURL,
+    role: "user",
+    createdAt: serverTimestamp() as any,
+    notificationsEnabled: true,
+  };
+
+  await setDoc(ref, docData);
+  return docData;
 }
 
 export async function fetchUserDoc(uid: string): Promise<UserDoc | null> {
@@ -49,4 +62,18 @@ export async function fetchUserRole(uid: string): Promise<"user" | "admin"> {
   const s = await getDoc(doc(db, "users", uid));
   if (!s.exists()) return "user";
   return ((s.data() as any).role as "user" | "admin") ?? "user";
+}
+
+export async function updateUserPushSettings(
+  uid: string,
+  data: {
+    pushToken?: string | null;
+    notificationsEnabled?: boolean;
+  }
+) {
+  const ref = doc(db, "users", uid);
+  await updateDoc(ref, {
+    ...data,
+    updatedAt: serverTimestamp(),
+  });
 }
