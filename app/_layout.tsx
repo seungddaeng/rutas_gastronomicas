@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { View, ActivityIndicator } from "react-native";
 import { Stack } from "expo-router";
 import * as Notifications from "expo-notifications";
-
+import { NiceAlertProvider } from "../components/NiceAlert";
 import { useAuthListener } from "../hooks/useAuthListener";
 import { useUserStore } from "../store/useUserStore";
 import { usePushNotifications } from "../hooks/usePushNotifications";
@@ -44,11 +44,19 @@ export default function RootLayout() {
 
   if (loading) {
     return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
-      </View>
+      <NiceAlertProvider>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
+          <ActivityIndicator />
+        </View>
+      </NiceAlertProvider>
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <NiceAlertProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </NiceAlertProvider>
+  );
 }

@@ -4,12 +4,12 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
   Pressable,
   ScrollView,
   Switch,
 } from "react-native";
+import { useNiceAlert } from "../components/NiceAlert";
 import { useState, useLayoutEffect, useMemo, useEffect, useRef } from "react";
 import * as ImagePicker from "expo-image-picker";
 import { useThemeColors } from "../hooks/useThemeColors";
@@ -49,6 +49,7 @@ export default function ProfileScreen() {
   const user = useUserStore((s) => s.user);
   const setUser = useUserStore((s) => s.setUser as any);
   const isAdmin = useIsAdmin();
+  const alert = useNiceAlert();
 
   const [loading, setLoading] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] =
@@ -95,10 +96,13 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      Alert.alert("Sesión cerrada", "Vuelve pronto");
+      alert.success("Sesión cerrada", "Vuelve pronto");
       router.replace("/auth");
     } catch (e: any) {
-      Alert.alert("Error", e?.message ?? "No se pudo cerrar sesión.");
+      alert.error(
+        "Error",
+        e?.message ?? "No se pudieron actualizar las notificaciones."
+      );
     }
   };
 
@@ -115,13 +119,13 @@ export default function ProfileScreen() {
       });
 
       if (!value) {
-        Alert.alert(
+        alert.info(
           "Notificaciones desactivadas",
           "No te enviaremos notificaciones hasta que las vuelvas a activar."
         );
       }
     } catch (e: any) {
-      Alert.alert(
+      alert.error(
         "Error",
         e?.message ?? "No se pudieron actualizar las notificaciones."
       );
@@ -133,7 +137,7 @@ export default function ProfileScreen() {
 
   const handleTestNotificationPress = async () => {
     if (!notificationsEnabled) {
-      Alert.alert(
+      alert.info(
         "Notificaciones desactivadas",
         "Activa el switch para poder recibir notificaciones."
       );
@@ -143,8 +147,7 @@ export default function ProfileScreen() {
     try {
       await scheduleLocalNotification();
     } catch (e: any) {
-      console.log("Error al programar notificación local:", e);
-      Alert.alert("Error", "No se pudo programar la notificación de prueba.");
+      alert.error("Error", "No se pudo programar la notificación de prueba.");
     }
   };
 
@@ -262,9 +265,7 @@ export default function ProfileScreen() {
             ? true
             : !!doc.notificationsEnabled
         );
-      } catch (e) {
-        console.log("Error cargando settings de notificaciones:", e);
-      }
+      } catch {}
     })();
 
     return () => {
@@ -278,7 +279,7 @@ export default function ProfileScreen() {
 
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert(
+        alert.info(
           "Permisos",
           "Necesito acceso a tu galería para seleccionar la foto."
         );
@@ -294,7 +295,7 @@ export default function ProfileScreen() {
 
       const asset = res.assets?.[0];
       if (!asset?.uri) {
-        Alert.alert("Ups", "No se seleccionó ninguna imagen válida.");
+        alert.error("Ups", "No se seleccionó ninguna imagen válida.");
         return;
       }
 
@@ -305,13 +306,13 @@ export default function ProfileScreen() {
 
       const url = up.secure_url || up.url;
       if (!url) {
-        Alert.alert("Ups", "No se obtuvo URL de Cloudinary.");
+        alert.error("Ups", "No se obtuvo URL de Cloudinary.");
         return;
       }
 
       const current = auth.currentUser;
       if (!current) {
-        Alert.alert("Sesión", "No hay usuario autenticado.");
+        alert.error("Sesión", "No hay usuario autenticado.");
         return;
       }
       await (current as any).updateProfile({ photoURL: url });
@@ -336,9 +337,9 @@ export default function ProfileScreen() {
         });
       }
 
-      Alert.alert("Listo", "Foto actualizada con éxito.");
+      alert.success("Listo", "Foto actualizada con éxito.");
     } catch (e: any) {
-      Alert.alert("Error", e?.message ?? "Error al actualizar foto.");
+      alert.error("Error", e?.message ?? "Error al actualizar foto.");
     } finally {
       setLoading(false);
     }

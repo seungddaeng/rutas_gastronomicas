@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   View,
@@ -8,115 +8,124 @@ import {
   ActivityIndicator,
   TextInput,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { useIsAdmin } from "../../../constants/roles";
 import { spacing, radius } from "../../../theme/tokens";
 import { useThemeColors } from "../../../hooks/useThemeColors";
-import { useUserStore } from "../../../store/useUserStore";
 import {
-  onPendingRoutesAdmin,
-  setRouteStatus,
-  formatRouteMeta,
-  RouteDTO,
-} from "../../../services/routes";
-
+  getPlatoName,
+  setReviewStatus,
+  onAllPendingReviews,
+} from "../../../services/reviews";
+import StarRating from "../../../components/StarRating";
+import { useUserStore } from "../../../store/useUserStore";
+type PendingItem = {
+  id: string;
+  platoId: string;
+  userDisplayName: string;
+  rating: number;
+  comment?: string;
+  createdAt?: any;
+  status: "pending";
+};
 const reasonRef = { current: "" as string };
-
-export default function RutasPendientesScreen() {
+export default function ReviewsPendientesScreen() {
   const isAdmin = useIsAdmin();
   const { colors } = useThemeColors();
   const styles = getStyles(colors);
   const me = useUserStore((s) => s.user);
-  const navigation = useNavigation();
-
-  const [items, setItems] = useState<RouteDTO[]>([]);
+  const [items, setItems] = useState<PendingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [names, setNames] = useState<Record<string, string>>({});
   const [rejectTarget, setRejectTarget] = useState<{
     show: boolean;
     onSubmit?: (r?: string) => void;
   }>({ show: false });
-
-  useLayoutEffect(() => {
-    navigation.setOptions?.({ title: "Rutas pendientes" });
-  }, [navigation]);
-
   useEffect(() => {
     if (!isAdmin) return;
     setLoading(true);
-    const off = onPendingRoutesAdmin((rows) => {
-      setItems(rows);
+    const off = onAllPendingReviews(async (rows) => {
+      setItems(rows as PendingItem[]);
+      const uniquePlatos = Array.from(new Set(rows.map((r: any) => r.platoId)));
+      const entries = await Promise.all(
+        uniquePlatos.map(async (pid) => [pid, await getPlatoName(pid)] as const)
+      );
+      setNames(Object.fromEntries(entries));
       setLoading(false);
     });
     return off;
   }, [isAdmin]);
-
-  async function aprobar(routeId: string) {
-    await setRouteStatus({
-      routeId,
+  async function aprobar(item: PendingItem) {
+    await setReviewStatus({
+      platoId: item.platoId,
+      reviewId: item.id,
       status: "approved",
       adminUid: me?.uid ?? "unknown",
       adminName: me?.displayName ?? me?.email ?? "Admin",
     });
   }
-
   function pedirRazon(onSubmit: (razon: string | undefined) => void) {
     setRejectTarget({ show: true, onSubmit });
   }
-
   if (!isAdmin) {
     return (
       <View style={styles.notAuth}>
-        <Text style={styles.text}>No autorizado</Text>
+        {" "}
+        <Text style={styles.text}>No autorizado</Text>{" "}
       </View>
     );
   }
-
   if (loading) {
     return (
       <View style={styles.loader}>
-        <ActivityIndicator />
+        {" "}
+        <ActivityIndicator />{" "}
       </View>
     );
   }
-
   return (
     <View style={styles.screen}>
+      {" "}
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Rutas pendientes ({items.length})</Text>
-
+        {" "}
+        <Text style={styles.title}>
+          Reseñas pendientes ({items.length})
+        </Text>{" "}
         {items.length === 0 ? (
-          <Text style={styles.muted}>No hay rutas por revisar.</Text>
+          <Text style={styles.muted}>No hay reseñas por revisar.</Text>
         ) : (
           items.map((r) => (
             <View key={r.id} style={styles.card}>
-              <Text style={styles.muted}>{formatRouteMeta(r)}</Text>
-
-              <View style={styles.row}>
-                <Text style={styles.cardTitle}>{r.title}</Text>
-                <View style={styles.badge}>
-                  <Text style={styles.badgeText}>Pendiente</Text>
-                </View>
-              </View>
-
-              {!!r.summary && <Text style={styles.comment}>{r.summary}</Text>}
+              {" "}
               <Text style={styles.muted}>
-                Propuesta por {r.userDisplayName ?? "Anónimo"}
-              </Text>
-
+                {" "}
+                {names[r.platoId] ?? "(Plato)"} • {r.platoId}{" "}
+              </Text>{" "}
+              <View style={styles.row}>
+                {" "}
+                <StarRating value={r.rating} />{" "}
+                <View style={styles.badge}>
+                  {" "}
+                  <Text style={styles.badgeText}>Pendiente</Text>{" "}
+                </View>{" "}
+              </View>{" "}
+              {!!r.comment && <Text style={styles.comment}>{r.comment}</Text>}{" "}
+              <Text style={styles.muted}>Reseña de {r.userDisplayName}</Text>{" "}
               <View style={styles.actionsRow}>
+                {" "}
                 <TouchableOpacity
                   style={styles.btnApprove}
-                  onPress={() => aprobar(r.id!)}
+                  onPress={() => aprobar(r)}
                 >
-                  <Text style={styles.btnApproveText}>Aprobar</Text>
-                </TouchableOpacity>
-
+                  {" "}
+                  <Text style={styles.btnApproveText}>Aprobar</Text>{" "}
+                </TouchableOpacity>{" "}
                 <TouchableOpacity
                   style={styles.btnReject}
                   onPress={() =>
                     pedirRazon(async (razon) => {
-                      await setRouteStatus({
-                        routeId: r.id!,
+                      await setReviewStatus({
+                        platoId: r.platoId,
+                        reviewId: r.id,
                         status: "rejected",
                         adminUid: me?.uid ?? "unknown",
                         adminName: me?.displayName ?? me?.email ?? "Admin",
@@ -126,24 +135,26 @@ export default function RutasPendientesScreen() {
                     })
                   }
                 >
-                  <Text style={styles.btnRejectText}>Rechazar</Text>
-                </TouchableOpacity>
-              </View>
+                  {" "}
+                  <Text style={styles.btnRejectText}>Rechazar</Text>{" "}
+                </TouchableOpacity>{" "}
+              </View>{" "}
             </View>
           ))
-        )}
-      </ScrollView>
-
+        )}{" "}
+      </ScrollView>{" "}
       {rejectTarget.show && (
         <View style={styles.modalBackdrop}>
+          {" "}
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Razón (opcional)</Text>
+            {" "}
+            <Text style={styles.modalTitle}>Razón (opcional)</Text>{" "}
             <TextInput
               style={styles.modalInput}
-              placeholder="Ej: Duplicada o incompleta"
+              placeholder="Ej: No cumple reglas de contenido"
               placeholderTextColor={colors.muted}
               onChangeText={(t) => (reasonRef.current = t)}
-            />
+            />{" "}
             <View
               style={{
                 flexDirection: "row",
@@ -152,11 +163,13 @@ export default function RutasPendientesScreen() {
                 marginTop: 8,
               }}
             >
+              {" "}
               <TouchableOpacity
                 onPress={() => setRejectTarget({ show: false })}
               >
-                <Text style={{ color: colors.muted }}>Cancelar</Text>
-              </TouchableOpacity>
+                {" "}
+                <Text style={{ color: colors.muted }}>Cancelar</Text>{" "}
+              </TouchableOpacity>{" "}
               <TouchableOpacity
                 onPress={() => {
                   const v = reasonRef.current;
@@ -165,18 +178,19 @@ export default function RutasPendientesScreen() {
                   reasonRef.current = "";
                 }}
               >
+                {" "}
                 <Text style={{ color: colors.primary, fontWeight: "700" }}>
-                  Guardar
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
+                  {" "}
+                  Guardar{" "}
+                </Text>{" "}
+              </TouchableOpacity>{" "}
+            </View>{" "}
+          </View>{" "}
         </View>
-      )}
+      )}{" "}
     </View>
   );
 }
-
 const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
   StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
@@ -204,7 +218,6 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
       justifyContent: "space-between",
       alignItems: "center",
     },
-    cardTitle: { color: colors.text, fontWeight: "700", fontSize: 14 },
     badge: {
       paddingHorizontal: spacing.md,
       paddingVertical: 6,
@@ -214,6 +227,28 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
       backgroundColor: colors.surface,
     },
     badgeText: { color: colors.text, fontWeight: "600" },
+    actions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
+    chip: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    chipText: { color: colors.text, fontWeight: "600" },
+    notAuth: {
+      flex: 1,
+      backgroundColor: colors.background,
+      padding: spacing.lg,
+      justifyContent: "center",
+    },
+    loader: {
+      flex: 1,
+      backgroundColor: colors.background,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     actionsRow: {
       flexDirection: "row",
       gap: spacing.sm,
@@ -233,18 +268,6 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
       backgroundColor: "#e74c3c",
     },
     btnRejectText: { color: "#fff", fontWeight: "700" },
-    notAuth: {
-      flex: 1,
-      backgroundColor: colors.background,
-      padding: spacing.lg,
-      justifyContent: "center",
-    },
-    loader: {
-      flex: 1,
-      backgroundColor: colors.background,
-      alignItems: "center",
-      justifyContent: "center",
-    },
     modalBackdrop: {
       position: "absolute",
       top: 0,

@@ -5,7 +5,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   Switch,
 } from "react-native";
 import { spacing, radius } from "../../../theme/tokens";
@@ -13,11 +12,13 @@ import { useThemeColors } from "../../../hooks/useThemeColors";
 import { useUserStore } from "../../../store/useUserStore";
 import { createRoute } from "../../../services/routes";
 import { useRouter } from "expo-router";
+import { useNiceAlert } from "../../../components/NiceAlert";
 
 export default function CrearRuta() {
   const { colors } = useThemeColors();
   const user = useUserStore((s) => s.user);
   const router = useRouter();
+  const alert = useNiceAlert();
 
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
@@ -28,7 +29,7 @@ export default function CrearRuta() {
   async function onSubmit() {
     if (!user?.uid) return;
     if (!title.trim()) {
-      Alert.alert("Ups", "Ponle un título a tu ruta.");
+      alert.info("Ups", "Ponle un título a tu ruta.");
       return;
     }
     try {
@@ -46,15 +47,14 @@ export default function CrearRuta() {
         userDisplayName: user.displayName ?? user.email ?? "Anónimo",
         isPublic,
       });
-      Alert.alert(
-        isPublic ? "Enviada" : "Guardada",
-        isPublic
-          ? "Tu ruta fue enviada a aprobación."
-          : "Tu ruta quedó privada (solo tú la ves)."
-      );
+      if (isPublic) {
+        alert.success("Enviada", "Tu ruta fue enviada a aprobación.");
+      } else {
+        alert.success("Guardada", "Tu ruta quedó privada (solo tú la ves).");
+      }
       router.back();
     } catch (e: any) {
-      Alert.alert("Error", e?.message ?? "No se pudo crear la ruta.");
+      alert.error("Error", e?.message ?? "No se pudo crear la ruta.");
     } finally {
       setSaving(false);
     }
