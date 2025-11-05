@@ -35,8 +35,9 @@ Por eso nace **Rutas Gastronómicas**, una solución que:
 - Permite filtrar por picosidad.
 - Te guía al lugar típico con **un solo toque**.
 
-![Mapa con marcadores]()
 
+
+![mapas](https://github.com/user-attachments/assets/3d84abfe-ee28-435b-8fd4-0dea0f91b7dd)
 
 
 ---
@@ -47,7 +48,7 @@ Por eso nace **Rutas Gastronómicas**, una solución que:
 Desarrollar una aplicación móvil que permita **descubrir y localizar platos típicos de La Paz** de forma interactiva y accesible.
 
 
-![Favoritos]()
+![favoritos](https://github.com/user-attachments/assets/7daf0c39-4656-450e-b825-cbd2b4a1c4ae)
 
 
 
@@ -59,7 +60,7 @@ El proyecto está organizado con **Expo Router**, **Zustand** para el manejo de 
 
 
 
-<img width="335" height="1120" alt="image" src="https://github.com/user-attachments/assets/0796ad8e-8b39-4e7e-8de0-123d6dd491f7" />
+<img width="335" height="1000" alt="image" src="https://github.com/user-attachments/assets/0796ad8e-8b39-4e7e-8de0-123d6dd491f7" />
 
 
 ## Demo funcional
