@@ -36,8 +36,9 @@ Por eso nace **Rutas Gastronómicas**, una solución que:
 - Te guía al lugar típico con **un solo toque**.
 
 
-
-![mapas](https://github.com/user-attachments/assets/3d84abfe-ee28-435b-8fd4-0dea0f91b7dd)
+<img width="250" height="950" alt="image" src="https://github.com/user-attachments/assets/3d84abfe-ee28-435b-8fd4-0dea0f91b7dd" />
+<img width="250" height="950" alt="image" src="https://github.com/user-attachments/assets/815c27b1-e5ed-4873-9b47-c69ad35b77f8" />
+<img width="250" height="950" alt="image" src="https://github.com/user-attachments/assets/7daf0c39-4656-450e-b825-cbd2b4a1c4ae" />
 
 
 ---
@@ -46,10 +47,6 @@ Por eso nace **Rutas Gastronómicas**, una solución que:
 
 ### Objetivo general
 Desarrollar una aplicación móvil que permita **descubrir y localizar platos típicos de La Paz** de forma interactiva y accesible.
-
-
-![favoritos](https://github.com/user-attachments/assets/7daf0c39-4656-450e-b825-cbd2b4a1c4ae)
-
 
 
 ---
@@ -74,13 +71,13 @@ El proyecto está organizado con **Expo Router**, **Zustand** para el manejo de 
 6. Agregar un plato a favoritos.  
 7. Revisar favoritos guardados.
 
-📹 **Video de demo (YouTube):**  
-🔗 [https://youtu.be/TU_LINK_AQUI](#)
+**Video de demo (YouTube):**  
+🔗 (https://youtu.be/WNSKQjbxefw?si=Ud9sLKxc25vT5l8I)
 
 ---
 
 
-## 🧾 Créditos y agradecimientos
+## Créditos y agradecimientos
 
 Proyecto desarrollado como parte del curso de **Certificacion React Native**.
 Agradecimientos a Paul Landaeta por su guía.
@@ -88,7 +85,7 @@ Agradecimientos a Paul Landaeta por su guía.
 
 ---
 
-## 📦 Instalación y ejecución
+## Instalación y ejecución
 
 ```bash
 # Clonar el proyecto
