@@ -10,22 +10,14 @@ import {
   ScrollView,
   Switch,
 } from "react-native";
-import {
-  useState,
-  useLayoutEffect,
-  useMemo,
-  useEffect,
-  useRef,
-} from "react";
+import { useState, useLayoutEffect, useMemo, useEffect, useRef } from "react";
 import * as ImagePicker from "expo-image-picker";
-
 import { useThemeColors } from "../hooks/useThemeColors";
 import { spacing, radius } from "../theme/tokens";
 import { uploadToCloudinary } from "../utils/cloudinary";
 import { auth } from "../lib/firebase";
 import { useUserStore } from "../store/useUserStore";
 import { updateUserProfilePhoto } from "../services/user";
-
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
@@ -42,6 +34,13 @@ import {
 import { useIsAdmin } from "../constants/roles";
 import { fetchUserDoc, updateUserPushSettings } from "../services/users";
 import { scheduleLocalNotification } from "../hooks/usePushNotifications";
+import {
+  onPublicRoutes,
+  onUserRoutes as onUserRoutesRT,
+  formatRouteMeta,
+  RouteDTO,
+} from "../services/routes";
+import type { RouteStatus } from "../services/routes";
 
 type ReviewStatus = "pending" | "approved" | "rejected";
 
@@ -79,6 +78,10 @@ export default function ProfileScreen() {
   >([]);
 
   const lastReviewStatuses = useRef<Record<string, ReviewStatus>>({});
+
+  const [publicRoutes, setPublicRoutes] = useState<RouteDTO[]>([]);
+  const [myRoutes, setMyRoutes] = useState<RouteDTO[]>([]);
+  const lastRouteStatuses = useRef<Record<string, RouteStatus>>({});
 
   const navigation = useNavigation();
   const router = useRouter();
@@ -141,10 +144,7 @@ export default function ProfileScreen() {
       await scheduleLocalNotification();
     } catch (e: any) {
       console.log("Error al programar notificación local:", e);
-      Alert.alert(
-        "Error",
-        "No se pudo programar la notificación de prueba."
-      );
+      Alert.alert("Error", "No se pudo programar la notificación de prueba.");
     }
   };
 
@@ -186,9 +186,7 @@ export default function ProfileScreen() {
           ) {
             const approved = status === "approved";
             scheduleLocalNotification({
-              title: approved
-                ? "Reseña aprobada ✨"
-                : "Reseña revisada",
+              title: approved ? "Reseña aprobada ✨" : "Reseña revisada",
               body: approved
                 ? `Tu reseña de ${pName} fue aprobada.`
                 : `Tu reseña de ${pName} fue rechazada. Revisa el feedback del admin.`,
@@ -346,33 +344,49 @@ export default function ProfileScreen() {
     }
   };
 
-  const defaultRoutes = [
-    {
-      id: "d1",
-      title: "Ruta clásica La Paz centro",
-      meta: "Plaza Murillo → Mercado Lanza → Sopocachi",
-    },
-    {
-      id: "d2",
-      title: "El Alto — 16 de Julio",
-      meta: "Feria → Anticuchos → Api con buñuelo",
-    },
-  ];
-
-  const userRoutesPlaceholder = [
-    {
-      id: "u1",
-      title: "Mi ruta vegana",
-      meta: "Sopocachi → San Miguel → Calacoto",
-    },
-  ];
-
   const Row = ({ title, meta }: { title: string; meta: string }) => (
     <View style={styles.rowItem}>
       <Text style={[styles.rowTitle, { color: colors.text }]}>{title}</Text>
       <Text style={[styles.rowMeta, { color: colors.muted }]}>{meta}</Text>
     </View>
   );
+
+  useEffect(() => {
+    const off = onPublicRoutes((rows) => setPublicRoutes(rows));
+    return off;
+  }, []);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+    const off = onUserRoutesRT(user.uid, (rows) => {
+      rows.forEach((r) => {
+        if (!r.id) return;
+        const prev = lastRouteStatuses.current[r.id];
+        const curr = r.status as RouteStatus;
+
+        const shouldNotify =
+          notificationsEnabled &&
+          prev &&
+          prev !== curr &&
+          (curr === "approved" || curr === "rejected");
+
+        if (shouldNotify) {
+          const approved = curr === "approved";
+          scheduleLocalNotification({
+            title: approved ? "Ruta aprobada ✨" : "Ruta revisada",
+            body: approved
+              ? `Tu ruta "${r.title}" fue aprobada.`
+              : `Tu ruta "${r.title}" fue rechazada. Revisa el feedback del admin.`,
+            data: { type: "route-status-changed", routeId: r.id, status: curr },
+          });
+        }
+
+        lastRouteStatuses.current[r.id] = curr;
+      });
+      setMyRoutes(rows);
+    });
+    return off;
+  }, [user?.uid, notificationsEnabled]);
 
   return (
     <ScrollView
@@ -383,7 +397,6 @@ export default function ProfileScreen() {
       }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Card de perfil */}
       <View
         style={[
           styles.card,
@@ -456,6 +469,7 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         </View>
       </View>
+
       <View
         style={[
           styles.sectionCard,
@@ -512,6 +526,8 @@ export default function ProfileScreen() {
             <Switch
               value={notificationsEnabled}
               onValueChange={handleToggleNotifications}
+              trackColor={{ false: colors.border, true: colors.primary + "66" }}
+              thumbColor={notificationsEnabled ? colors.primary : "#fff"}
             />
             {savingNotifications && (
               <ActivityIndicator size="small" style={{ marginTop: 4 }} />
@@ -547,7 +563,6 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Tus reseñas */}
       <View
         style={[
           styles.sectionCard,
@@ -652,7 +667,6 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {/* Historial admin */}
       {isAdmin && (
         <View
           style={[
@@ -757,7 +771,6 @@ export default function ProfileScreen() {
         </View>
       )}
 
-      {/* Rutas gastronómicas */}
       <View
         style={[
           styles.sectionCard,
@@ -768,27 +781,129 @@ export default function ProfileScreen() {
           },
         ]}
       >
-        <Text style={[styles.sectionTitle, { color: colors.muted }]}>
-          Rutas gastronómicas
-        </Text>
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text style={[styles.sectionTitle, { color: colors.muted }]}>
+            Rutas gastronómicas
+          </Text>
+          {publicRoutes.length > 3 && (
+            <TouchableOpacity onPress={() => router.push("/(drawer)/routes")}>
+              <Text style={[styles.linkText, { color: colors.primary }]}>
+                Ver más
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
-        <Text style={[styles.subTitle, { color: colors.text }]}>
-          Por defecto
-        </Text>
-        {defaultRoutes.map((r) => (
-          <Row key={r.id} title={r.title} meta={r.meta} />
-        ))}
+        <Text style={[styles.subTitle, { color: colors.text }]}>Globales</Text>
+        {publicRoutes.slice(0, 3).length === 0 ? (
+          <Text style={{ color: colors.muted }}>
+            Aún no hay rutas aprobadas.
+          </Text>
+        ) : (
+          publicRoutes
+            .slice(0, 3)
+            .map((r) => (
+              <Row
+                key={r.id!}
+                title={`${r.title} — ${r.userDisplayName ?? "Anónimo"}`}
+                meta={formatRouteMeta(r)}
+              />
+            ))
+        )}
 
         <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-        <Text style={[styles.subTitle, { color: colors.text }]}>
-          Creadas por ti
-        </Text>
-        {userRoutesPlaceholder.map((r) => (
-          <Row key={r.id} title={r.title} meta={r.meta} />
-        ))}
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Text style={[styles.subTitle, { color: colors.text }]}>
+            Creadas por ti
+          </Text>
+          {myRoutes.length > 3 && (
+            <TouchableOpacity
+              onPress={() => router.push("/(drawer)/profile/mis-rutas")}
+            >
+              <Text style={[styles.linkText, { color: colors.primary }]}>
+                Ver más
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {myRoutes.slice(0, 3).length === 0 ? (
+          <Text style={{ color: colors.muted }}>Aún no creaste rutas.</Text>
+        ) : (
+          myRoutes.slice(0, 3).map((r) => (
+            <View key={r.id!} style={{ marginBottom: spacing.sm }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <Text style={[styles.rowTitle, { color: colors.text }]}>
+                  {r.title}
+                </Text>
+                <View
+                  style={[
+                    styles.badge,
+                    r.status === "approved"
+                      ? styles.badgeOk
+                      : r.status === "rejected"
+                      ? styles.badgeNo
+                      : r.status === "private"
+                      ? styles.badgePriv
+                      : styles.badgePend,
+                  ]}
+                >
+                  <Text style={styles.badgeText}>
+                    {r.status === "approved"
+                      ? "Aprobada"
+                      : r.status === "rejected"
+                      ? "Rechazada"
+                      : r.status === "private"
+                      ? "Privada"
+                      : "Pendiente"}
+                  </Text>
+                </View>
+              </View>
+              <Text style={[styles.rowMeta, { color: colors.muted }]}>
+                {formatRouteMeta(r)}
+              </Text>
+
+              {r.status === "rejected" && !!r.adminFeedback && (
+                <View
+                  style={[
+                    styles.feedbackBox,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor: colors.background,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.feedbackLabel, { color: colors.muted }]}>
+                    Feedback del admin
+                  </Text>
+                  <Text style={{ color: colors.text }}>{r.adminFeedback}</Text>
+                </View>
+              )}
+            </View>
+          ))
+        )}
 
         <TouchableOpacity
+          onPress={() => router.push("/(drawer)/routes/crear")}
           style={[
             styles.btnOutline,
             {
@@ -804,7 +919,6 @@ export default function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Créditos */}
       <View
         style={[
           styles.sectionCard,
@@ -850,7 +964,6 @@ export default function ProfileScreen() {
         </Text>
       </View>
 
-      {/* Logout */}
       <TouchableOpacity
         onPress={handleLogout}
         style={[
@@ -957,6 +1070,7 @@ const styles = StyleSheet.create({
   badgeOk: { backgroundColor: "#2ecc71" },
   badgeNo: { backgroundColor: "#e74c3c" },
   badgePend: { backgroundColor: "#f1c40f" },
+  badgePriv: { backgroundColor: "#95a5a6" },
 
   feedbackBox: {
     borderWidth: 1,

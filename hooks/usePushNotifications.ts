@@ -6,8 +6,9 @@ import Constants from "expo-constants";
 
 export function usePushNotifications() {
   const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-  const [notification, setNotification] =
-    useState<Notifications.Notification | undefined>();
+  const [notification, setNotification] = useState<
+    Notifications.Notification | undefined
+  >();
 
   const responseListener = useRef<Notifications.Subscription | null>(null);
   const receiveListener = useRef<Notifications.Subscription | null>(null);
@@ -31,10 +32,11 @@ export function usePushNotifications() {
       if (token) setExpoPushToken(token);
     });
 
-    receiveListener.current =
-      Notifications.addNotificationReceivedListener((n) => {
+    receiveListener.current = Notifications.addNotificationReceivedListener(
+      (n) => {
         setNotification(n);
-      });
+      }
+    );
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((resp) => {
@@ -59,20 +61,15 @@ export function usePushNotifications() {
   };
 }
 
-async function registerForPushNotificationsAsync(): Promise<string | undefined> {
+async function registerForPushNotificationsAsync(): Promise<
+  string | undefined
+> {
   if (!Device.isDevice) {
     console.warn("Debes usar un dispositivo físico para push.");
     return;
   }
 
-  if (
-    Platform.OS === "android" &&
-    (Constants as any).appOwnership === "expo"
-  ) {
-    console.warn(
-      "[Push] Ejecutando en Expo Go Android: las push remotas no están soportadas " +
-        "a partir de SDK 53. Usaremos solo notificaciones locales."
-    );
+  if (Platform.OS === "android" && (Constants as any).appOwnership === "expo") {
     return;
   }
 
@@ -92,9 +89,8 @@ async function registerForPushNotificationsAsync(): Promise<string | undefined> 
   const projectId = "7d08872f-7310-448d-961a-1c527a7931ee";
 
   try {
-    const token = (
-      await Notifications.getExpoPushTokenAsync({ projectId })
-    ).data;
+    const token = (await Notifications.getExpoPushTokenAsync({ projectId }))
+      .data;
     return token;
   } catch (e) {
     console.warn("[Push] Error al obtener Expo Push Token:", e);
@@ -139,9 +135,7 @@ export async function scheduleLocalNotification(custom?: {
   await Notifications.scheduleNotificationAsync({
     content: {
       title: custom?.title ?? "Rutas Gastronómicas",
-      body:
-        custom?.body ??
-        "Vuelve a descubrir un platito paceño hoy 🤍",
+      body: custom?.body ?? "Vuelve a descubrir un platito paceño hoy 🤍",
       sound: "default",
       data: { local: true, ...(custom?.data ?? {}) },
     },

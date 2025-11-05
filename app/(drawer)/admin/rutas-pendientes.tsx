@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ScrollView,
   View,
@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   TextInput,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import { useIsAdmin } from "../../../constants/roles";
 import { spacing, radius } from "../../../theme/tokens";
 import { useThemeColors } from "../../../hooks/useThemeColors";
@@ -27,7 +26,6 @@ export default function RutasPendientesScreen() {
   const { colors } = useThemeColors();
   const styles = getStyles(colors);
   const me = useUserStore((s) => s.user);
-  const navigation = useNavigation();
 
   const [items, setItems] = useState<RouteDTO[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,10 +33,6 @@ export default function RutasPendientesScreen() {
     show: boolean;
     onSubmit?: (r?: string) => void;
   }>({ show: false });
-
-  useLayoutEffect(() => {
-    navigation.setOptions?.({ title: "Rutas pendientes" });
-  }, [navigation]);
 
   useEffect(() => {
     if (!isAdmin) return;
@@ -179,13 +173,33 @@ export default function RutasPendientesScreen() {
 
 const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
   StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
-    scroll: { backgroundColor: colors.background },
-    content: { padding: spacing.lg, gap: spacing.md },
-    title: { fontWeight: "700", fontSize: 18, color: colors.text },
-    text: { color: colors.text },
-    muted: { color: colors.muted, marginBottom: 4 },
-    comment: { color: colors.text, marginTop: 6 },
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scroll: {
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: spacing.lg,
+      gap: spacing.md,
+    },
+    title: {
+      fontWeight: "700",
+      fontSize: 18,
+      color: colors.text,
+    },
+    text: {
+      color: colors.text,
+    },
+    muted: {
+      color: colors.muted,
+      marginBottom: 4,
+    },
+    comment: {
+      color: colors.text,
+      marginTop: 6,
+    },
     card: {
       borderWidth: 1,
       borderColor: colors.border,
@@ -204,7 +218,11 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
       justifyContent: "space-between",
       alignItems: "center",
     },
-    cardTitle: { color: colors.text, fontWeight: "700", fontSize: 14 },
+    cardTitle: {
+      color: colors.text,
+      fontWeight: "700",
+      fontSize: 14,
+    },
     badge: {
       paddingHorizontal: spacing.md,
       paddingVertical: 6,
@@ -213,7 +231,10 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
-    badgeText: { color: colors.text, fontWeight: "600" },
+    badgeText: {
+      color: colors.text,
+      fontWeight: "600",
+    },
     actionsRow: {
       flexDirection: "row",
       gap: spacing.sm,
@@ -233,6 +254,7 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
       backgroundColor: "#e74c3c",
     },
     btnRejectText: { color: "#fff", fontWeight: "700" },
+
     notAuth: {
       flex: 1,
       backgroundColor: colors.background,
@@ -245,6 +267,7 @@ const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
       alignItems: "center",
       justifyContent: "center",
     },
+
     modalBackdrop: {
       position: "absolute",
       top: 0,

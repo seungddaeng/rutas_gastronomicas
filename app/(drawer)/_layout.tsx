@@ -85,10 +85,83 @@ export default function DrawerLayout() {
           headerShadowVisible: true,
         }}
       />
+
       <Drawer.Screen
         name="admin/historial"
         options={{
           title: "Historial",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="admin/rutas-pendientes"
+        options={{
+          title: "Rutas pendientes",
+          drawerLabel: isAdmin ? "Rutas pendientes" : undefined,
+          drawerItemStyle: isAdmin ? undefined : { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="admin/historial-rutas"
+        options={{
+          title: "Historial de rutas",
+          drawerLabel: isAdmin ? "Historial de rutas" : undefined,
+          drawerItemStyle: isAdmin ? undefined : { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="routes/index"
+        options={{
+          title: "Rutas globales",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="routes/crear"
+        options={{
+          title: "Crear ruta",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="profile/mis-rutas"
+        options={{
+          title: "Mis rutas",
           drawerItemStyle: { display: "none" },
           headerShown: true,
           headerTitleAlign: "center",
