@@ -1,62 +1,191 @@
-import React from 'react';
-import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import { useThemeColors } from '../hooks/useThemeColors';
+import { Drawer } from "expo-router/drawer";
+import { StyleSheet } from "react-native";
+import { useThemeColors } from "../../hooks/useThemeColors";
+import { useIsAdmin } from "../../constants/roles";
+import { useUserStore } from "../../store/useUserStore";
 
-export default function TabsLayout() {
+export default function DrawerLayout() {
   const { colors } = useThemeColors();
+  const styles = getStyles(colors);
+  const isAdmin = useIsAdmin();
+  const loading = useUserStore((s) => s.loading);
 
   return (
-    <Tabs
+    <Drawer
       screenOptions={{
-        headerTitleAlign: 'center',
-        headerStyle: { backgroundColor: colors.surface },
-        headerTintColor: colors.text,
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.muted,
-        tabBarStyle: { backgroundColor: colors.surface },
+        headerShown: false,
+        drawerActiveTintColor: colors.primary,
+        drawerInactiveTintColor: colors.text,
+        drawerStyle: styles.drawerStyle,
       }}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Inicio',
-          tabBarLabel: 'Inicio',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
-          ),
-        }}
+      <Drawer.Screen
+        name="(tabs)"
+        options={{ title: "Inicio", drawerLabel: "Inicio" }}
       />
-      <Tabs.Screen
-        name="platos"
-        options={{
-          title: 'Platos',
-          tabBarLabel: 'Platos',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="restaurant-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="favoritos"
-        options={{
-          title: 'Favoritos',
-          tabBarLabel: 'Favoritos',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
+
+      <Drawer.Screen
         name="perfil"
+        options={{ title: "Perfil", drawerLabel: "Perfil" }}
+      />
+
+      <Drawer.Screen
+        name="settings/index"
         options={{
-          title: 'Perfil',
-          tabBarLabel: 'Perfil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle-outline" size={size} color={color} />
-          ),
+          title: "Ajustes",
+          drawerLabel: "Ajustes",
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
         }}
       />
-    </Tabs>
+
+      <Drawer.Screen
+        name="admin/reviews-pendientes"
+        options={{
+          title: "Reseñas pendientes",
+          drawerLabel: isAdmin ? "Reseñas pendientes" : undefined,
+          drawerItemStyle: isAdmin ? undefined : { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="profile/mis-resenas"
+        options={{
+          title: "Tus reseñas",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="reviews/[platoId]/[reviewId]"
+        options={{
+          title: "Detalle de reseña",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="admin/historial"
+        options={{
+          title: "Historial",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="admin/rutas-pendientes"
+        options={{
+          title: "Rutas pendientes",
+          drawerLabel: isAdmin ? "Rutas pendientes" : undefined,
+          drawerItemStyle: isAdmin ? undefined : { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="admin/historial-rutas"
+        options={{
+          title: "Historial de rutas",
+          drawerLabel: isAdmin ? "Historial de rutas" : undefined,
+          drawerItemStyle: isAdmin ? undefined : { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="routes/index"
+        options={{
+          title: "Rutas globales",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="routes/crear"
+        options={{
+          title: "Crear ruta",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+
+      <Drawer.Screen
+        name="profile/mis-rutas"
+        options={{
+          title: "Mis rutas",
+          drawerItemStyle: { display: "none" },
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerStyle: styles.header,
+          headerTitleStyle: styles.headerTitle,
+          headerTintColor: colors.text,
+          headerShadowVisible: true,
+        }}
+      />
+    </Drawer>
   );
 }
+
+const getStyles = (colors: ReturnType<typeof useThemeColors>["colors"]) =>
+  StyleSheet.create({
+    header: {
+      backgroundColor: colors.surface,
+    },
+    headerTitle: {
+      color: colors.text,
+      fontWeight: "500",
+      fontSize: 20,
+    },
+    drawerStyle: {
+      backgroundColor: colors.background,
+    },
+  });

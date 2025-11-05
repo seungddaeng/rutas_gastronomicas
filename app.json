@@ -1,24 +1,32 @@
 {
   "expo": {
+    "owner": "mel_2025s",
     "name": "rutas_gastronomicas",
     "slug": "rutas_gastronomicas",
+    "scheme": "rutasgastronomicas",  
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/splash.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte platos cercanos y trazar rutas en el mapa."
+}
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "permissions": ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+        "package": "com.rutasgastronomicas.app",
+        "userInterfaceStyle": "automatic"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -27,7 +35,9 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-location",
+      "expo-notifications"
     ]
   }
 }
